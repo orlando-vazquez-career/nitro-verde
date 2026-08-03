@@ -16,6 +16,7 @@ pub mod sse;
 
 use std::sync::Arc;
 
+use axum::extract::DefaultBodyLimit;
 use axum::Router;
 use nv_engine::orchestrator::Orchestrator;
 use tokio_util::sync::CancellationToken;
@@ -47,6 +48,15 @@ pub fn router(
         .merge(fake_meta::router().with_state(state.clone()))
         .merge(media::router().with_state(state.clone()))
         .merge(sse::router(shutdown).with_state(state))
-        .merge(api::router().with_state(api_state))
+        .merge(
+            // 25 MB: las recetas son fotos de celular de 3-8 MB; el default
+            // de axum (2 MB) las rechazaba con 400 multipart_invalid.
+            api::router()
+                .layer(DefaultBodyLimit::max(MAX_API_BODY_BYTES))
+                .with_state(api_state),
+        )
         .merge(crate::ui_assets::router())
 }
+
+/// Límite de body para la API de control (subida de recetas por la UI).
+const MAX_API_BODY_BYTES: usize = 25 * 1024 * 1024;

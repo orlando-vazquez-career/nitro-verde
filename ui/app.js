@@ -432,6 +432,10 @@
           renderWebhookTargetError(res.json.status);
           return;
         }
+        if (res.status === 400 || res.status === 413) {
+          renderSystemNote('el archivo es muy grande o está corrupto (máx 25 MB por adjunto)');
+          return;
+        }
         renderSystemNote('error enviando adjunto (HTTP ' + res.status + ')');
       })
       .catch(function () {

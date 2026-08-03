@@ -358,3 +358,29 @@ async fn post_media_validaciones_400_y_404() {
     // Ninguno de los casos de validación disparó webhook.
     assert_eq!(sender.calls.lock().unwrap().len(), 0);
 }
+
+/// Regresión (bug reportado en gate humano): una foto de receta de celular
+/// (3-8 MB) era rechazada con 400 `multipart_invalid` por el DefaultBodyLimit
+/// de axum (2 MB). El router ensamblado ahora admite 25 MB en /api.
+#[tokio::test]
+async fn adjunto_de_5mb_pasa_el_body_limit() {
+    let (_state, sender, app) = fixture();
+    let conv_id = create_conversation(&app).await;
+
+    let foto_celular = vec![0xFF; 5 * 1024 * 1024]; // 5 MB binarios
+    let body = multipart_body(
+        "NvBoundaryT19",
+        "image",
+        None,
+        "receta.jpg",
+        "image/jpeg",
+        &foto_celular,
+    );
+    let (status, json) = post_media(app, &conv_id, body).await;
+
+    assert_eq!(status, StatusCode::OK, "5 MB debe pasar: {json}");
+    assert_eq!(json["accepted"], true);
+    assert!(json["media_id"].as_str().unwrap().starts_with("media_"));
+    // El webhook salió con la imagen (el target capturante lo recibió).
+    assert_eq!(sender.calls.lock().unwrap().len(), 1);
+}
