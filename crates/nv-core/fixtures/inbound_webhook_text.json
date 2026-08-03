@@ -1,0 +1,39 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "WABA_NV",
+      "changes": [
+        {
+          "field": "messages",
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "56900000000",
+              "phone_number_id": "NV_PHONE_ID"
+            },
+            "contacts": [
+              {
+                "profile": {
+                  "name": "NV User"
+                },
+                "wa_id": "56900000001"
+              }
+            ],
+            "messages": [
+              {
+                "from": "56900000001",
+                "id": "wamid.NV_0123456789abcdef",
+                "timestamp": "1785700000",
+                "type": "text",
+                "text": {
+                  "body": "4"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

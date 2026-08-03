@@ -1,0 +1,8 @@
+{
+  "messaging_product": "whatsapp",
+  "to": "56900000001",
+  "type": "text",
+  "text": {
+    "body": "Hola, ¿cómo evaluarías tu atención del 1 al 5?"
+  }
+}

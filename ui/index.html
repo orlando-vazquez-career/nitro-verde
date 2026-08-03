@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NitroVerde — fake WhatsApp para probar tu bot</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <header id="topbar">
+    <h1>NitroVerde</h1>
+    <div id="fault-controls">
+      <button id="btn-fault-500" type="button" title="POST /api/faults {&quot;status&quot;:500}">
+        Simular 500
+      </button>
+      <button id="btn-fault-clear" type="button" title="DELETE /api/faults">
+        Limpiar fallo
+      </button>
+      <span id="fault-status" aria-live="polite"></span>
+    </div>
+  </header>
+
+  <section id="connect-bar">
+    <input id="phone" type="text" inputmode="tel" placeholder="56900000001"
+           value="56900000001" aria-label="Teléfono del usuario simulado (sin +)">
+    <button id="btn-new-conversation" type="button">Nueva conversación</button>
+    <span id="connection-status" aria-live="polite"></span>
+  </section>
+
+  <main id="chat" aria-live="polite"></main>
+
+  <footer id="composer">
+    <div id="attach-preview" hidden></div>
+    <button id="btn-attach" type="button" title="Adjuntar imagen o PDF de receta"
+            aria-label="Adjuntar imagen o PDF" disabled>📎</button>
+    <input id="file-input" type="file" accept="image/*,.pdf" hidden>
+    <input id="message-input" type="text" placeholder="Escribí un mensaje…"
+           aria-label="Mensaje de texto libre" disabled>
+    <button id="btn-send" type="button" disabled>Enviar</button>
+  </footer>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>

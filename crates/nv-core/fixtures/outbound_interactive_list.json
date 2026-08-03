@@ -1,0 +1,31 @@
+{
+  "messaging_product": "whatsapp",
+  "to": "56900000001",
+  "type": "interactive",
+  "interactive": {
+    "type": "list",
+    "body": {
+      "text": "Elegí una opción"
+    },
+    "action": {
+      "button": "Ver opciones",
+      "sections": [
+        {
+          "title": "Opciones",
+          "rows": [
+            {
+              "id": "lista_x",
+              "title": "Opción X",
+              "description": "Detalle de la opción X"
+            },
+            {
+              "id": "lista_y",
+              "title": "Opción Y",
+              "description": "Detalle de la opción Y"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

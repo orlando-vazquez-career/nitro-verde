@@ -1,0 +1,14 @@
+{
+  "messaging_product": "whatsapp",
+  "contacts": [
+    {
+      "input": "56900000001",
+      "wa_id": "56900000001"
+    }
+  ],
+  "messages": [
+    {
+      "id": "wamid.NV_0123456789abcdef"
+    }
+  ]
+}

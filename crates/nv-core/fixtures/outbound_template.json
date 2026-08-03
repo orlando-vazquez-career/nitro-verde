@@ -1,0 +1,22 @@
+{
+  "messaging_product": "whatsapp",
+  "to": "56900000001",
+  "type": "template",
+  "template": {
+    "name": "nps_followup",
+    "language": {
+      "code": "es"
+    },
+    "components": [
+      {
+        "type": "body",
+        "parameters": [
+          {
+            "type": "text",
+            "text": "Juan"
+          }
+        ]
+      }
+    ]
+  }
+}

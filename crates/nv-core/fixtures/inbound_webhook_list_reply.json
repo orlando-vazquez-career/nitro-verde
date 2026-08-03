@@ -1,0 +1,44 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "WABA_NV",
+      "changes": [
+        {
+          "field": "messages",
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "56900000000",
+              "phone_number_id": "NV_PHONE_ID"
+            },
+            "contacts": [
+              {
+                "profile": {
+                  "name": "NV User"
+                },
+                "wa_id": "56900000001"
+              }
+            ],
+            "messages": [
+              {
+                "from": "56900000001",
+                "id": "wamid.NV_0f1e2d3c4b5a6978",
+                "timestamp": "1785700002",
+                "type": "interactive",
+                "interactive": {
+                  "type": "list_reply",
+                  "list_reply": {
+                    "id": "lista_x",
+                    "title": "Opción X",
+                    "description": ""
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

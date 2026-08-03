@@ -1,0 +1,22 @@
+[package]
+name = "nv-engine"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Motor de NitroVerde: fake-Meta, orchestrator, registry, fault injection. No conoce axum."
+
+[dependencies]
+nv-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+hex.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "sync", "time"] }
+reqwest.workspace = true
+hmac.workspace = true
+sha2.workspace = true
+dashmap.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+wiremock.workspace = true

@@ -1,0 +1,28 @@
+[package]
+name = "nv"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Binario NitroVerde: fake WhatsApp Cloud API + orchestrator de pruebas para bots."
+
+[dependencies]
+nv-http.workspace = true
+nv-engine.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "signal", "net", "time", "io-util"] }
+tokio-util = { workspace = true, features = ["rt"] }
+axum.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+clap.workspace = true
+anyhow.workspace = true
+tracing-subscriber.workspace = true
+tracing.workspace = true
+
+[lib]
+name = "nv"
+path = "src/lib.rs"
+
+[[bin]]
+name = "nv"
+path = "src/main.rs"

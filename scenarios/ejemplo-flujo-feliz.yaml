@@ -1,0 +1,35 @@
+# Escenario del funnel de referencia Besplus (táctica §C-9) COMO DATOS.
+#
+# Día 1 headless-ready: define el flujo NPS → motivo → propuesta → agendar.
+# El runner headless que lo ejecuta NO existe todavía (out of scope de la
+# lite; usará la arista nv → nv-engine). Hoy solo se carga y se valida.
+#
+# phone: teléfono del usuario simulado, SIN '+' (convención §C-2).
+name: flujo-feliz-reactivacion-besplus
+phone: "56900000001"
+steps:
+  # 1) NPS: el usuario puntúa 4 → el bot responde botones de motivo
+  #    (incluye id `motivo_precio`).
+  - send:
+      kind: text
+      body: "4"
+    expect:
+      kind_contains: buttons
+  # 2) Click "Me pareció caro" → el bot envía «Propuesta Clínica» + cierre
+  #    con gancho «hacer MATCH» (buttons).
+  - send:
+      kind: button_reply
+      id: motivo_precio
+      title: Me pareció caro
+    expect:
+      kind_contains: buttons
+      text_contains: MATCH
+  # 3) Click "Agendamos" → el bot envía link de agendado («asesoría
+  #    estética» + url http/agendar). Estado final esperado del lead:
+  #    oferta_asesoria o link_asesoria_enviado (lo verifica el E2E T18).
+  - send:
+      kind: button_reply
+      id: asesoria_agendar
+      title: Agendamos
+    expect:
+      text_contains: agendar

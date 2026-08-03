@@ -1,0 +1,29 @@
+{
+  "messaging_product": "whatsapp",
+  "to": "56900000001",
+  "type": "interactive",
+  "interactive": {
+    "type": "button",
+    "body": {
+      "text": "Lamentamos eso. ¿Cuál fue el motivo?"
+    },
+    "action": {
+      "buttons": [
+        {
+          "type": "reply",
+          "reply": {
+            "id": "motivo_precio",
+            "title": "Me pareció caro"
+          }
+        },
+        {
+          "type": "reply",
+          "reply": {
+            "id": "motivo_atencion",
+            "title": "Mala atención"
+          }
+        }
+      ]
+    }
+  }
+}

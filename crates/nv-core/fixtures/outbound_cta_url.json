@@ -1,0 +1,18 @@
+{
+  "messaging_product": "whatsapp",
+  "to": "56900000001",
+  "type": "interactive",
+  "interactive": {
+    "type": "cta_url",
+    "body": {
+      "text": "Agendá tu asesoría gratuita"
+    },
+    "action": {
+      "name": "cta_url",
+      "parameters": {
+        "display_text": "Agendar ahora",
+        "url": "https://akiveo.cl/agendar"
+      }
+    }
+  }
+}

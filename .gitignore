@@ -1,0 +1,7 @@
+/target
+
+# Configs locales con secrets (NUNCA commitear)
+nv.config.json
+*.local.json
+.env
+.env.*

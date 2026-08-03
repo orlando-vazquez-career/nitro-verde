@@ -1,0 +1,51 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/nv-core",
+    "crates/nv-engine",
+    "crates/nv-http",
+    "crates/nv",
+]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+
+# Stack fijo (ADR). NO agregar deps fuera de esta lista sin reportar.
+[workspace.dependencies]
+nv-core = { path = "crates/nv-core" }
+nv-engine = { path = "crates/nv-engine" }
+nv-http = { path = "crates/nv-http" }
+
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+serde_yaml_ng = "0.10"
+thiserror = "2"
+anyhow = "1"
+hex = "0.4"
+
+tokio = { version = "1" }
+tokio-stream = "0.1"
+tokio-util = "0.7"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+hmac = "0.13"
+sha2 = "0.11"
+subtle = "2.6"
+dashmap = "6.2"
+
+axum = "0.8"
+tower = "0.5"
+tower-http = "0.7"
+rust-embed = "8.12"
+mime_guess = "2.0"
+
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4.6", features = ["derive"] }
+
+# Dev (tests)
+# NOTA: wiremock 0.6.5 exige rustc >= 1.88 (let-chains, E0658) y el toolchain
+# fijo es 1.85 (ADR). Se pinnea 0.6.4, la mayor 0.6.x compatible.
+wiremock = "=0.6.4"
+http-body-util = "0.1"
