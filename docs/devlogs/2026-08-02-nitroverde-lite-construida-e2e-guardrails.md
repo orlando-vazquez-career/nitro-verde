@@ -47,3 +47,7 @@ Backlog consciente (documentado, no bloqueante): caps de memoria en registry (M-
 - Publicación en GitHub `orlando-vazquez-career/nitro-verde` (este devlog precede al push).
 - Gate de validación del veredicto: 60 días, ≥2 iteraciones reales del funnel + ≥1 bug capturado que `simulate_bot_funnel.py` no veía, o se archiva (forecasts.jsonl).
 - Fase 2 (si el gate se supera): panel de estado (feature-gated), escenarios preset con seed, modo headless runner, cleanup automático.
+
+## Post-hoc (2026-08-03, madrugada) — fix body limit tras gate humano
+
+El gate humano UI encontró dos cosas: (1) el alcance media (→ T19, ya integrado), y (2) **adjuntar una foto real de celular fallaba con 400 `multipart_invalid`**: el `DefaultBodyLimit` de axum (2 MB) rechazaba las fotos de receta típicas (3-8 MB). Fix en `e6f8f4f`: límite de `/api` a 25 MB (`DefaultBodyLimit::max` en el router ensamblado), test de regresión con adjunto de 5 MB end-to-end, y mensaje claro en la UI ante 400/413. Verificado contra el server en vivo (5 MB → 200 + media_id). Push a GitHub. 145 tests.

@@ -40,6 +40,7 @@ pub struct ApiState {
 pub fn router() -> Router<ApiState> {
     Router::new()
         .route("/api/health", get(health))
+        .route("/api/conversations", get(list_conversations))
         .route("/api/conversations", post(create_conversation))
         .route("/api/conversations/{id}/transcript", get(get_transcript))
         .route(
@@ -59,13 +60,25 @@ async fn health() -> Response {
 }
 
 /// Body de `POST /api/conversations` (§C-1): `{"phone":"56900000001"}`
-/// (phone = usuario simulado, SIN `+`).
+/// (phone = usuario simulado, con o sin `+`).
 #[derive(Debug, Deserialize)]
 struct CreateConversation {
     phone: String,
 }
 
-/// `POST /api/conversations` → `201 {"conversation_id":"...","phone":"..."}`.
+/// `GET /api/conversations` → `200 [{"conversation_id","phone","event_count","last_ts"}]`
+/// (más recientes primero). Es como la UI descubre conversaciones que el
+/// SISTEMA inició (apertura de campaña, reminders): el outbound auto-crea la
+/// conversación en el registry y acá la encontrás sin duplicar.
+async fn list_conversations(State(state): State<ApiState>) -> Response {
+    Json(state.app.registry.list_summaries()).into_response()
+}
+
+/// `POST /api/conversations` → idempotente por phone:
+/// - si ya existe conversación para ese phone (con o sin `+` inicial) →
+///   `200 {"conversation_id","phone","created":false}` (abre la existente;
+///   el caso "el sistema escribió primero");
+/// - si no → `201 {"conversation_id","phone","created":true}`.
 async fn create_conversation(
     State(state): State<ApiState>,
     Json(body): Json<CreateConversation>,
@@ -78,12 +91,38 @@ async fn create_conversation(
         )
             .into_response();
     }
+    // Match tolerante al `+`: los leads DB y los `to` de Meta lo traen, la UI
+    // puede venir sin él. Sin duplicar conversaciones por formato.
+    let existente = state
+        .app
+        .registry
+        .find_by_phone(phone)
+        .or_else(|| {
+            let alt = if let Some(stripped) = phone.strip_prefix('+') {
+                stripped.to_string()
+            } else {
+                format!("+{phone}")
+            };
+            state.app.registry.find_by_phone(&alt)
+        });
+    if let Some(conversation_id) = existente {
+        return (
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "conversation_id": conversation_id,
+                "phone": phone,
+                "created": false,
+            })),
+        )
+            .into_response();
+    }
     let conversation_id = state.app.registry.create(phone);
     (
         StatusCode::CREATED,
         Json(serde_json::json!({
             "conversation_id": conversation_id,
             "phone": phone,
+            "created": true,
         })),
     )
         .into_response()

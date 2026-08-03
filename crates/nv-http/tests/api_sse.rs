@@ -448,3 +448,67 @@ async fn api_health_ok() {
     assert_eq!(status, StatusCode::OK);
     assert_eq!(json, serde_json::json!({"status": "ok"}));
 }
+
+// (T-apertura) POST /api/conversations es idempotente por phone: si el
+// SISTEMA escribió primero (apertura de campaña → fake-Meta auto-crea la
+// conversación), crearla desde la UI ABRE la existente en vez de duplicar.
+#[tokio::test]
+async fn api_create_conversation_idempotente_abre_la_existente() {
+    let (state, app) = fixture(Arc::new(CapturingSender::ok()));
+
+    // El "sistema escribe primero": el registry auto-crea con evento.
+    let id_sistema = state.registry.get_or_create_by_phone("+56911666777");
+    state
+        .registry
+        .append_event(
+            &id_sistema,
+            ChatEvent::new(Direction::FromBot, EventKind::Template),
+        )
+        .unwrap();
+
+    // La UI pide crear con el mismo phone → 200, MISMO id, created:false.
+    let (status, json) =
+        post_json(app.clone(), "/api/conversations", r#"{"phone":"+56911666777"}"#).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(json["conversation_id"], id_sistema.as_str());
+    assert_eq!(json["created"], false);
+
+    // Match tolerante al +: pedir sin "+" también abre la misma.
+    let (status, json) =
+        post_json(app, "/api/conversations", r#"{"phone":"56911666777"}"#).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(json["conversation_id"], id_sistema.as_str());
+    assert_eq!(json["created"], false);
+
+    // El transcript conserva el evento que el sistema había mandado.
+    assert_eq!(state.registry.snapshot(&id_sistema).unwrap().len(), 1);
+}
+
+// (T-apertura) GET /api/conversations lista las vivas (más reciente primero)
+// para descubrir conversaciones iniciadas por el sistema.
+#[tokio::test]
+async fn api_list_conversations_devuelve_summaries() {
+    let (state, app) = fixture(Arc::new(CapturingSender::ok()));
+    let id_vacia = state.registry.create("56900000001");
+    let id_con_evento = state.registry.get_or_create_by_phone("+56911666777");
+    state
+        .registry
+        .append_event(
+            &id_con_evento,
+            ChatEvent::new(Direction::FromBot, EventKind::Template),
+        )
+        .unwrap();
+
+    let (status, json) = get_json(app, "/api/conversations").await;
+    assert_eq!(status, StatusCode::OK);
+    let lista = json.as_array().expect("array");
+    assert_eq!(lista.len(), 2);
+    // La que tiene evento va primero (last_ts más reciente).
+    assert_eq!(lista[0]["conversation_id"], id_con_evento.as_str());
+    assert_eq!(lista[0]["phone"], "+56911666777");
+    assert_eq!(lista[0]["event_count"], 1);
+    assert!(lista[0]["last_ts"].is_string());
+    assert_eq!(lista[1]["conversation_id"], id_vacia.as_str());
+    assert_eq!(lista[1]["event_count"], 0);
+    assert!(lista[1]["last_ts"].is_null());
+}

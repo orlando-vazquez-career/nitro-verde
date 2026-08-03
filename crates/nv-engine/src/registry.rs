@@ -25,6 +25,15 @@ use tokio::sync::broadcast;
 /// Capacidad del canal broadcast por conversación (§C-5: 256).
 pub const BROADCAST_CAPACITY: usize = 256;
 
+/// Resumen de una conversación para `GET /api/conversations`.
+#[derive(Debug, Clone, serde::Serialize, PartialEq, Eq)]
+pub struct ConversationSummary {
+    pub conversation_id: ConversationId,
+    pub phone: String,
+    pub event_count: usize,
+    pub last_ts: Option<String>,
+}
+
 /// Sesión viva de una conversación: transcript + difusión de deltas.
 pub struct Session {
     /// Phone del usuario simulado (sin `+`, §C-1). Lo lee T9 para el `from`.
@@ -106,6 +115,29 @@ impl Registry {
     /// Id existente para `phone`, SIN crear (lookups y asserts de tests).
     pub fn find_by_phone(&self, phone: &str) -> Option<ConversationId> {
         self.by_phone.get(phone).map(|r| r.value().clone())
+    }
+
+    /// Listado de conversaciones vivas para `GET /api/conversations`
+    /// (mensajes que LLEGAN primero — el sistema escribe antes que el usuario:
+    /// la UI necesita descubrirlas sin crear duplicados). Orden: último
+    /// evento primero; las vacías al final. Todo sync, guards sueltos.
+    pub fn list_summaries(&self) -> Vec<ConversationSummary> {
+        let mut out: Vec<ConversationSummary> = self
+            .conversations
+            .iter()
+            .map(|entry| {
+                let (id, session) = (entry.key(), entry.value());
+                let transcript = session.transcript.read().expect("transcript lock poisoned");
+                ConversationSummary {
+                    conversation_id: id.clone(),
+                    phone: session.phone().to_string(),
+                    event_count: transcript.events.len(),
+                    last_ts: transcript.events.last().map(|e| e.ts.clone()),
+                }
+            })
+            .collect();
+        out.sort_by(|a, b| b.last_ts.cmp(&a.last_ts));
+        out
     }
 
     /// Append al transcript + difusión del delta (§C-5). Devuelve el evento

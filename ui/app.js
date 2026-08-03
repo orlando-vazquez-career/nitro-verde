@@ -35,6 +35,7 @@
   var btnAttach = document.getElementById('btn-attach');
   var fileInput = document.getElementById('file-input');
   var attachPreview = document.getElementById('attach-preview');
+  var recentSelect = document.getElementById('recent-conversations');
   var connectionStatus = document.getElementById('connection-status');
   var faultStatus = document.getElementById('fault-status');
   var btnFault500 = document.getElementById('btn-fault-500');
@@ -302,7 +303,7 @@
     btnNew.disabled = true;
     postJson('/api/conversations', { phone: phone })
       .then(function (res) {
-        if (res.status !== 201 || !res.json) {
+        if ((res.status !== 201 && res.status !== 200) || !res.json) {
           setStatus(connectionStatus, 'error creando conversación (HTTP ' + res.status + ')');
           return;
         }
@@ -320,6 +321,9 @@
         return loadTranscript().then(function () {
           state.transcriptLoaded = true;
           flushPendingDeltas();
+          if (res.json.created === false) {
+            renderSystemNote('conversación existente — se cargó el historial');
+          }
         });
       })
       .catch(function () {
@@ -474,8 +478,32 @@
     api('/api/faults', { method: 'DELETE' }).then(refreshFaultStatus);
   });
 
+  // Lista de conversaciones vivas (GET /api/conversations): así se descubren
+  // las que el SISTEMA inició (apertura de campaña, reminders) sin duplicar.
+  function refreshRecentConversations() {
+    api('/api/conversations').then(function (res) {
+      if (res.status !== 200 || !Array.isArray(res.json)) return;
+      while (recentSelect.options.length > 1) recentSelect.remove(1);
+      res.json.forEach(function (c) {
+        if (!c.event_count) return; // solo las que tienen historia
+        var opt = document.createElement('option');
+        opt.value = c.phone;
+        opt.textContent = c.phone + ' (' + c.event_count + ' msgs)';
+        recentSelect.appendChild(opt);
+      });
+      recentSelect.hidden = recentSelect.options.length <= 1;
+    }).catch(function () { /* sin lista si el server no responde */ });
+  }
+
   // --- wiring ---
   btnNew.addEventListener('click', connect);
+  recentSelect.addEventListener('change', function () {
+    var phone = recentSelect.value;
+    if (!phone) return;
+    phoneInput.value = phone;
+    connect();
+    recentSelect.value = '';
+  });
   btnSend.addEventListener('click', send);
   btnAttach.addEventListener('click', function () {
     fileInput.click();
@@ -487,4 +515,5 @@
     if (e.key === 'Enter') send();
   });
   refreshFaultStatus();
+  refreshRecentConversations();
 })();
