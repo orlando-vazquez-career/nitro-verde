@@ -51,3 +51,9 @@ Backlog consciente (documentado, no bloqueante): caps de memoria en registry (M-
 ## Post-hoc (2026-08-03, madrugada) — fix body limit tras gate humano
 
 El gate humano UI encontró dos cosas: (1) el alcance media (→ T19, ya integrado), y (2) **adjuntar una foto real de celular fallaba con 400 `multipart_invalid`**: el `DefaultBodyLimit` de axum (2 MB) rechazaba las fotos de receta típicas (3-8 MB). Fix en `e6f8f4f`: límite de `/api` a 25 MB (`DefaultBodyLimit::max` en el router ensamblado), test de regresión con adjunto de 5 MB end-to-end, y mensaje claro en la UI ante 400/413. Verificado contra el server en vivo (5 MB → 200 + media_id). Push a GitHub. 145 tests.
+
+## Post-hoc 2 (2026-08-03, madrugada) — flujo "el sistema escribe primero" + hallazgo en akiveo-api
+
+El usuario pidió probar **recibir un mensaje iniciado por AkiVeo+** (apertura de campaña). NitroVerde ya recibía ese outbound (el fake-Meta captura todo lo del cliente), pero la UI no podía DESCUBRIR esas conversaciones: crear con el mismo teléfono las duplicaba vacías. Commit `8e6858d`: `GET /api/conversations` (summaries), `POST /api/conversations` idempotente por phone (200 created:false abre la existente, match tolerante al `+`), dropdown "Recientes…" en la UI. Verificado en vivo: `EnviarAperturaCampana` real → template `akiveo_apertura_nps` en el transcript de NV → la lista lo descubre → el create abre la misma conversación. 147 tests.
+
+**Hallazgo colateral (akiveo-api, NO NitroVerde)**: al disparar el batch de apertura con repos PG reales, los 14 leads pendientes fallaron TODOS por commits concurrentes (`asyncio.gather` de `_enviar_uno` sobre UNA sesión: `commit() can't be called here; _prepare_impl() already in progress`). El envío individual funciona. Sospecha de bug silencioso en prod (el endpoint devuelve 200 y los fallos solo se loguean) — registrado en SEELE `akiveo/api/sospecha-apertura-batch-commit-concurrente`, pendiente reproducción por el endpoint real.
